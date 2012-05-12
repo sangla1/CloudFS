@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import cmd
 import locale
 import pprint
@@ -59,12 +61,11 @@ class Dropbox(cmd.Cmd):
         self.sess = session.DropboxSession(APP_KEY, APP_SECRET, ACCESS_TYPE)
         self.sess.set_token(*access_token)
         self.api_client = client.DropboxClient(self.sess)
-        self.current_path = ''
 
-    def do_ls(self, path):
+    def ls(self, path):
         """list files in current remote directory"""
-        print "Current Path = " + self.current_path + path
-        resp = self.api_client.metadata(self.current_path + path)
+        print "Input Path = " + path
+        resp = self.api_client.metadata(path)
 
         if 'contents' in resp:
             for f in resp['contents']:
@@ -72,6 +73,44 @@ class Dropbox(cmd.Cmd):
                 encoding = locale.getdefaultlocale()[1]
                 self.stdout.write(('%s\n' % name).encode(encoding))
 
+    def getFileInfo(self, path):
+        try:
+            resp = self.api_client.metadata(path)
+        except rest.ErrorResponse:
+            return None
+        return resp
+
+    def mkdir(self, path):
+        """create a new directory"""
+        self.api_client.file_create_folder(path)
+
+    def rm(self, path):
+        """delete a file or directory"""
+        self.api_client.file_delete(path)
+
+    def get(self, from_path, to_path):
+        to_file = open(os.path.expanduser(to_path), "wb")
+
+        f, metadata = self.api_client.get_file_and_metadata(from_path)
+        #print 'Metadata:', metadata
+        to_file.write(f.read())
+
+    def put(self, from_path, to_path):
+        from_file = open(os.path.expanduser(from_path), "rb")
+
+        self.api_client.put_file(to_path, from_file)
+
 if __name__ == '__main__':
     dropbox = Dropbox(APP_KEY, APP_SECRET)
-    dropbox.do_ls("");
+    #dropbox.mkdir("test_mkdir");
+    #dropbox.rmdir("test_mkdir");
+    #dropbox.put("dropbox.pyc", "put_dropbox.pyc");
+    #dropbox.get("put_dropbox.pyc", "get_from_dropbox.pyc");
+    #dropbox.rm("put_dropbox.pyc");
+    dropbox.ls("");
+    dropbox.put("test.txt", "test.txt");
+    fileInfo = dropbox.getFileInfo("test.txt");
+    print "Created Data = " + fileInfo['modified']
+    print "File Size = " + str(fileInfo['bytes'])
+    print "FileInfo Dictionary = "
+    print fileInfo
