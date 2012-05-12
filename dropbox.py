@@ -64,14 +64,20 @@ class Dropbox(cmd.Cmd):
 
     def ls(self, path):
         """list files in current remote directory"""
-        print "Input Path = " + path
-        resp = self.api_client.metadata(path)
+        fileNameList = []
+        try:
+            resp = self.api_client.metadata(path)
+        except rest.ErrorResponse:
+            return fileNameList
 
         if 'contents' in resp:
             for f in resp['contents']:
                 name = os.path.basename(f['path'])
-                encoding = locale.getdefaultlocale()[1]
-                self.stdout.write(('%s\n' % name).encode(encoding))
+                fileNameList.append(name)
+                #encoding = locale.getdefaultlocale()[1]
+                #self.stdout.write(('%s\n' % name).encode(encoding))
+
+        return fileNameList
 
     def getFileInfo(self, path):
         try:
@@ -107,10 +113,13 @@ if __name__ == '__main__':
     #dropbox.put("dropbox.pyc", "put_dropbox.pyc");
     #dropbox.get("put_dropbox.pyc", "get_from_dropbox.pyc");
     #dropbox.rm("put_dropbox.pyc");
-    dropbox.ls("");
-    dropbox.put("test.txt", "test.txt");
-    fileInfo = dropbox.getFileInfo("test.txt");
-    print "Created Data = " + fileInfo['modified']
-    print "File Size = " + str(fileInfo['bytes'])
+    fileNameList = dropbox.ls("");
+    print "ls result = "
+    print fileNameList
+    #dropbox.put("test.txt", "test.txt");
+    fileInfo = dropbox.getFileInfo("test.txt2");
+    if fileInfo != None:
+        print "Created Data = " + fileInfo['modified']
+        print "File Size = " + str(fileInfo['bytes'])
     print "FileInfo Dictionary = "
     print fileInfo
