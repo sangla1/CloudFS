@@ -68,7 +68,7 @@ class Dropbox(cmd.Cmd):
         try:
             resp = self.api_client.metadata(path)
         except rest.ErrorResponse:
-            return fileNameList
+            return None
 
         if 'contents' in resp:
             for f in resp['contents']:
