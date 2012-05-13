@@ -22,16 +22,24 @@ class AmazonS3FS(cmd.Cmd):
         pathCount = path.count('/')
         allKeys = self.bucket.get_all_keys()
         print "LS Debug = ", allKeys
-        for k in allKeys:
-            paddedKey = '/' + k.key
-            keyPathCount = k.key.count('/')
-            encoding = locale.getdefaultlocale()[1]
-            name = ('%s' % k.name).encode(encoding)
-            if name[-1:] == '/' and pathCount == keyPathCount:
-                if name.startswith(path[1:]):
-                    fileNameList.append(os.path.dirname(name))
-            if name[-1:] != '/' and pathCount - 1 == keyPathCount:
-                if name.startswith(path[1:]):
+        if len(path) == 1:
+            for k in allKeys:
+                keyPathCount = k.key.count('/')
+                encoding = locale.getdefaultlocale()[1]
+                name = ('%s' % k.name).encode(encoding)
+                if name[-1:] == '/' and pathCount == keyPathCount:
+                    if name.startswith(path[1:]):
+                        fileNameList.append(os.path.dirname(name))
+                if name[-1:] != '/' and pathCount - 1 == keyPathCount:
+                    if name.startswith(path[1:]):
+                        fileNameList.append(os.path.basename(name))
+        else:
+            path = path + '/'
+            for k in allKeys:
+                encoding = locale.getdefaultlocale()[1]
+                name = ('%s' % k.name).encode(encoding)
+                name = '/' + name
+                if name.startswith(path) and len(name) > len(path):
                     fileNameList.append(os.path.basename(name))
 
         return fileNameList
@@ -59,16 +67,42 @@ class AmazonS3FS(cmd.Cmd):
         return None
 
     def mkdir(self, path):
-        return None
+        path = path[1:] # remove first '/'
+        path = path + '/'
+        k = Key(self.bucket)
+        k.key = path
+        k.set_contents_from_string('')
+        return True
 
     def rm(self, path):
-        return None
+        attr = self.getFileInfo(path)
+        if attr['st_mode'] == (S_IFDIR|0755):
+            path = path[1:] # remove first '/'
+            path = path + '/'
+            print "DEBUG rm => now remove dir key - ", path
+            self.bucket.delete_key(path)
+        else:
+            path = path[1:] # remove first '/'
+            self.bucket.delete_key(path)
+        return True
 
     def get(self, from_path):
-        return None
+        attr = self.getFileInfo(from_path)
+        data = None
+        if attr['st_mode'] != (S_IFDIR|0755):
+            k = Key(self.bucket)
+            k.key = from_path[1:]
+            data = k.get_contents_as_string()
+        return data
 
     def put(self, data, to_path):
-        return None
+        dataStr = ''
+        f = open('/tmp/workfile', 'w')
+        f.write(data)
+        f.close()
+        k = Key(self.bucket)
+        k.key = to_path[1:]
+        k.set_contents_from_filename('/tmp/workfile')
 
 if __name__ == '__main__':
     s3 = AmazonS3FS(amazonkey.key, amazonkey.sec)
