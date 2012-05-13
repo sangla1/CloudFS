@@ -52,7 +52,7 @@ class Connector:
 		
 		return attr
 	
-	def push(self):
+	def push(self, content):
 		nop
 	
 	def pull(self, name, path):
