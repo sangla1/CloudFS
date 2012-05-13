@@ -76,14 +76,9 @@ class DropboxFS(cmd.Cmd):
                 encoding = locale.getdefaultlocale()[1]
                 name = ('%s' % name).encode(encoding)
                 fileNameList.append(name)
-                #self.stdout.write(('%s\n' % name).encode(encoding))
-
         return fileNameList
 
     def getFileInfo(self, path):
-	print "=========== getFileInfo"
-	print path
-	print "==========================="
         try:
             resp = self.api_client.metadata(path)
         except rest.ErrorResponse:
@@ -98,32 +93,33 @@ class DropboxFS(cmd.Cmd):
         """delete a file or directory"""
         self.api_client.file_delete(path)
 
-    def get(self, from_path, to_path):
-        to_file = open(os.path.expanduser(to_path), "wb")
-
+    def get(self, from_path):
         f, metadata = self.api_client.get_file_and_metadata(from_path)
-        #print 'Metadata:', metadata
-        to_file.write(f.read())
+	byte = metadata['bytes']
+	data = f.read(byte)
+	return data
 
     def put(self, from_path, to_path):
         from_file = open(os.path.expanduser(from_path), "rb")
 
         self.api_client.put_file(to_path, from_file)
 
-#if __name__ == '__main__':
-#    dropbox = Dropbox(APP_KEY, APP_SECRET)
-#    #dropbox.mkdir("test_mkdir");
-#    #dropbox.rmdir("test_mkdir");
-#    #dropbox.put("dropbox.pyc", "put_dropbox.pyc");
-#    #dropbox.get("put_dropbox.pyc", "get_from_dropbox.pyc");
-#    #dropbox.rm("put_dropbox.pyc");
-#    fileNameList = dropbox.ls("");
-#    print "ls result = "
-#    print fileNameList
-#    #dropbox.put("test.txt", "test.txt");
-#    fileInfo = dropbox.getFileInfo("test.txt2");
-#    if fileInfo != None:
-#        print "Created Data = " + fileInfo['modified']
-#        print "File Size = " + str(fileInfo['bytes'])
-#    print "FileInfo Dictionary = "
-#    print fileInfo
+if __name__ == '__main__':
+    dropbox = DropboxFS(APP_KEY, APP_SECRET)
+    #dropbox.mkdir("test_mkdir");
+    #dropbox.rmdir("test_mkdir");
+    #dropbox.put("dropbox.pyc", "put_dropbox.pyc");
+    #dropbox.get("put_dropbox.pyc", "get_from_dropbox.pyc");
+    #dropbox.rm("put_dropbox.pyc");
+    fileNameList = dropbox.ls("");
+    print "ls result = "
+    print fileNameList
+    #dropbox.put("test.txt", "test.txt");
+    #fileInfo = dropbox.getFileInfo("test.txt");
+    fileInfo = dropbox.getFileInfo("/test.txt");
+    if fileInfo != None:
+        print "Created Data = " + fileInfo['modified']
+        print "File Size = " + str(fileInfo['bytes'])
+    print "FileInfo Dictionary = "
+    print fileInfo
+    dropbox.get("/test.txt");
