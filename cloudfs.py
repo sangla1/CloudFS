@@ -14,8 +14,7 @@ class CloudFS(LoggingMixIn, Operations):
 	
 	def __init__(self):
 		self.maxFiles = 1024
-		self.files = [None] * self.maxFiles
-		self.fd = 2
+		self.files = [dict(path=None, dirty=False, data=None)] * self.maxFiles
 		self.conn = Connector()
 		
 	def chmod(self, path, mode):
@@ -25,7 +24,30 @@ class CloudFS(LoggingMixIn, Operations):
 		raise FuseOSError(EPERM)
 	
 	def create(self, path, mode):
-		raise FuseOSError(EPERM)
+		paths = splitPath(path)
+		print path, paths
+		if paths[0] == '':
+			raise FuseOSError(EPERM)
+
+		fd = None
+		fdNum = 0		
+		for i in range(0, self.maxFiles):
+			fd = self.files[i]
+			if fd['path'] == None:
+				fdNum = i
+				break
+
+		if fd == None:
+			raise FuseOSError(ENOENT)
+
+		fd['path'] = path
+		fd['dirty'] = False
+		fd['data'] = []
+
+		paths = splitPath(path)
+		self.conn.push(paths[0], paths[1], fd['data'])
+
+		return fdNum
 	
 	def getattr(self, path, fh=None):
 		now = time()
@@ -53,20 +75,32 @@ class CloudFS(LoggingMixIn, Operations):
 		print path, paths
 		if paths[0] == '':
 			raise FuseOSError(EPERM)
+
 		content = self.conn.pull(paths[0], paths[1])
 		if paths[0] == None:
 			raise FuseOSError(ENOENT)
-		print 'AAAAAAAAAAAAAAA'
-		print content
-		self.fd = self.fd + 1
-		self.files[self.fd] = content
 
-		return self.fd
+		fd = None
+		fdNum = 0		
+		for i in range(0, self.maxFiles):
+			fd = self.files[i]
+			if fd['path'] == None:
+				fdNum = i
+				break
+
+		if fd == None:
+			raise FuseOSError(ENOENT)
+
+		fd['path'] = path
+		fd['dirty'] = False
+		fd['data'] = content
+
+		return fdNum
 	
 	def read(self, path, size, offset, fh):
-		if self.files[fh] == None:
+		if self.files[fh]['path'] == None:
 			raise FuseOSError(ENOENT)
-		return self.files[fh][offset:offset + size]
+		return self.files[fh]['data'][offset:offset + size]
 	
 	def readdir(self, path, fh):
 		print 'readdir : ', path, fh
@@ -110,8 +144,27 @@ class CloudFS(LoggingMixIn, Operations):
 		raise FuseOSError(EPERM)
 
 	def write(self, path, data, offset, fh):
-		raise FuseOSError(EPERM)
-	
+		fd = self.files[fh]
+		if fd['path'] == None:
+			raise FuseOSError(ENOENT)
+
+		fd['data'] = fd['data'][:offset] + data
+		fd['dirty'] = True
+		
+		return len(data)
+
+	def release(self, path, fh):
+		fd = self.files[fh]
+		if fd['path'] == None:
+			raise FuseOSError(ENOENT)
+
+		if fd['dirty'] == True:
+			paths = splitPath(path)
+			self.conn.push(paths[0], paths[1], fd['data'])
+
+		fd['path'] = None
+		fd['dirty'] = False
+		fd['data'] = None
 
 def splitPath(path):
 	s = path.split('/')

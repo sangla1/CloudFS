@@ -52,8 +52,18 @@ class Connector:
 		
 		return attr
 	
-	def push(self, content):
-		nop
+	def push(self, name, path, content):
+		conn = self.findConn(name)
+		if conn == None:
+			return False
+
+		print 'PUSH'
+		print path
+		print content
+
+		conn['app'].put(content, path)
+
+		return True
 	
 	def pull(self, name, path):
 		conn = self.findConn(name)
