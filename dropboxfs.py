@@ -95,13 +95,15 @@ class DropboxFS(cmd.Cmd):
 
     def get(self, from_path):
         f, metadata = self.api_client.get_file_and_metadata(from_path)
-	byte = metadata['bytes']
-	data = f.read(byte)
-	return data
+        byte = metadata['bytes']
+        data = f.read(byte)
+        return data
 
-    def put(self, from_path, to_path):
-        from_file = open(os.path.expanduser(from_path), "rb")
-
+    def put(self, data, to_path):
+        f = open('/tmp/workfile', 'w')
+        f.write(data)
+        f.close()
+        from_file = open(os.path.expanduser('/tmp/workfile'), "rb")
         self.api_client.put_file(to_path, from_file)
 
 if __name__ == '__main__':
@@ -111,15 +113,17 @@ if __name__ == '__main__':
     #dropbox.put("dropbox.pyc", "put_dropbox.pyc");
     #dropbox.get("put_dropbox.pyc", "get_from_dropbox.pyc");
     #dropbox.rm("put_dropbox.pyc");
-    fileNameList = dropbox.ls("");
-    print "ls result = "
-    print fileNameList
+    #fileNameList = dropbox.ls("");
+    #print "ls result = "
+    #print fileNameList
     #dropbox.put("test.txt", "test.txt");
     #fileInfo = dropbox.getFileInfo("test.txt");
-    fileInfo = dropbox.getFileInfo("/test.txt");
-    if fileInfo != None:
-        print "Created Data = " + fileInfo['modified']
-        print "File Size = " + str(fileInfo['bytes'])
-    print "FileInfo Dictionary = "
-    print fileInfo
-    dropbox.get("/test.txt");
+    #fileInfo = dropbox.getFileInfo("/test.txt");
+    #if fileInfo != None:
+    #    print "Created Data = " + fileInfo['modified']
+    #    print "File Size = " + str(fileInfo['bytes'])
+    #print "FileInfo Dictionary = "
+    #print fileInfo
+    #dropbox.get("/test.txt");
+    dropbox.put("Hello World!\n", "/helloworld.txt")
+
