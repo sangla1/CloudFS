@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from dropboxfs import DropboxFS
 from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
 
