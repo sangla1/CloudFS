@@ -29,10 +29,8 @@ class CloudFS(LoggingMixIn, Operations):
 	
 	def getattr(self, path, fh=None):
 		now = time()
-		if path[-3:] == 'txt':
-			return dict(st_mode=(0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
-		return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
-		if path == '/':			
+		paths = splitPath(path)
+		if paths[0] == '':
 			return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
 
 		attr = self.conn.getAttr(paths[0], paths[1])
@@ -58,9 +56,12 @@ class CloudFS(LoggingMixIn, Operations):
 		content = self.conn.pull(paths[0], paths[1])
 		if paths[0] == None:
 			raise FuseOSError(ENOENT)
+		print 'AAAAAAAAAAAAAAA'
 		print content
 		self.fd = self.fd + 1
 		self.files[self.fd] = content
+
+		return self.fd
 	
 	def read(self, path, size, offset, fh):
 		if self.files[fh] == None:
