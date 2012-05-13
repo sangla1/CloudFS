@@ -111,9 +111,9 @@ class DropboxFS(cmd.Cmd):
         dataStr = ''
         f = open('/tmp/workfile', 'w')
         f.write(data)
-        for d in data:
-            dataStr.append(d)	
-        f.write(dataStr)
+        #for d in data:
+        #    dataStr.append(d)	
+        #f.write(dataStr)
         f.close()
         from_file = open(os.path.expanduser('/tmp/workfile'), "rb")
         self.api_client.put_file(to_path, from_file)
