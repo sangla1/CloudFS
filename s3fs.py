@@ -3,8 +3,12 @@
 import cmd
 import locale
 import sys, os
+import amazonkey
 
+from boto.s3.key import Key
 from boto.s3.connection import S3Connection
+from stat import S_IFDIR, S_IFLNK, S_IFREG
+from time import time
 
 class AmazonS3FS(cmd.Cmd):
     def __init__(self, key, secret):
@@ -13,6 +17,7 @@ class AmazonS3FS(cmd.Cmd):
         self.bucket = self.conn.create_bucket('cloud_fs')
 
     def ls(self, path):
+        print "DEBUG Amazon S3 Ls => ", path
         fileNameList = []
         pathCount = path.count('/')
         allKeys = self.bucket.get_all_keys()
@@ -32,11 +37,25 @@ class AmazonS3FS(cmd.Cmd):
         return fileNameList
 
     def getFileInfo(self, path):
+        print "DEBUG Amazon S3 GetFileInfo => ", path
+        now = time()
         pathCount = path.count('/')
+        if path[0] == '/':
+            path = path[1:]
+        if path == '':
+            attr = dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
+            return attr
+
         allKeys = self.bucket.get_all_keys()
-        print "LS Debug = ", allKeys
+        attr = None
         for k in allKeys:
-            paddedKey = '/' + k.key
+            if k.name[-1:] == '/':
+                if k.name == path + '/':
+                    attr = dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
+                    return attr
+            if k.name == path:
+                attr = dict(st_mode=(S_IFREG | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2, st_size=k.size)
+                return attr
         return None
 
     def mkdir(self, path):
@@ -52,8 +71,8 @@ class AmazonS3FS(cmd.Cmd):
         return None
 
 if __name__ == '__main__':
-    s3 = AmazonS3FS('', '')
+    s3 = AmazonS3FS(amazonkey.key, amazonkey.sec)
     lsResult = s3.ls('/')
     print lsResult
-    lsResult = s3.ls('/TestFolder2/')
+    lsResult = s3.getFileInfo('/TestFolder2')
     print lsResult

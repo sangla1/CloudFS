@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+import amazonkey
+from s3fs import AmazonS3FS
 from dropboxfs import DropboxFS
 from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
@@ -9,6 +10,7 @@ class Connector:
 	def __init__(self):
 		self.conns = []
 		self.conns.append(dict(name='dropbox', app=DropboxFS('vhgangrvc4w2poo', '2xsktxsbhn465mr')))
+		self.conns.append(dict(name='amazons3', app=AmazonS3FS(amazonkey.key, amazonkey.sec)))
 
 	def getConns(self):
 		conns = []
