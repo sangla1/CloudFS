@@ -28,6 +28,7 @@ class CloudFS(LoggingMixIn, Operations):
 	
 	def getattr(self, path, fh=None):
 		now = time()
+		return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
 		if path == '/':			
 			return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
 		else:
@@ -52,10 +53,12 @@ class CloudFS(LoggingMixIn, Operations):
 		print 'readdir : ', path, fh
 		paths = splitPath(path)
 		print paths
-		if (paths[0] == ''):
+		if paths[0] == '':
 			dents = self.conn.getConns()
+		elif paths[1] == '':
+			dents = self.conn.getDents(paths[0], '/')
 		else:
-			dents = self.conn.getDents()
+			dents = self.conn.getDents(paths[0], paths[1])
 
 		return ['.', '..'] + dents
 	

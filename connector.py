@@ -110,7 +110,7 @@ class Connector:
 
 	def __init__(self):
 		self.conns = []
-		self.conns.append(dict(name='test', app=Dropbox('vhgangrvc4w2poo', '2xsktxsbhn465mr')))
+		self.conns.append(dict(name='dropbox', app=Dropbox('vhgangrvc4w2poo', '2xsktxsbhn465mr')))
 
 	def getConns(self):
 		conns = []
