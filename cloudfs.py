@@ -127,7 +127,11 @@ class CloudFS(LoggingMixIn, Operations):
 		raise FuseOSError(EPERM)
 	
 	def rmdir(self, path):
-		raise FuseOSError(EPERM)
+		paths = splitPath(path)
+		if paths[1] == '':
+			raise FuseOSError(EPERM)
+		if self.conn.rm(paths[0], paths[1]) != True:
+			raise FuseOSError(ENOENT)
 	
 	def setxattr(self, path, name, value, options, position=0):
 		raise FuseOSError(EPERM)
@@ -144,7 +148,11 @@ class CloudFS(LoggingMixIn, Operations):
 		fd['data'] = fd['data'][:length]
 	
 	def unlink(self, path):
-		raise FuseOSError(EPERM)
+		paths = splitPath(path)
+		if paths[1] == '':
+			raise FuseOSError(EPERM)
+		if self.conn.rm(paths[0], paths[1]) != True:
+			raise FuseOSError(ENOENT)
 	
 	def utimens(self, path, times=None):
 		raise FuseOSError(EPERM)
