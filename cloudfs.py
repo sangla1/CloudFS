@@ -15,6 +15,7 @@ class CloudFS(LoggingMixIn, Operations):
 	def __init__(self):
 		self.maxFiles = 1024
 		self.files = [None] * self.maxFiles
+		self.fd = 2
 		self.conn = Connector()
 		
 	def chmod(self, path, mode):
@@ -58,9 +59,13 @@ class CloudFS(LoggingMixIn, Operations):
 		if paths[0] == None:
 			raise FuseOSError(ENOENT)
 		print content
+		self.fd = self.fd + 1
+		self.files[self.fd] = content
 	
 	def read(self, path, size, offset, fh):
-		raise FuseOSError(EPERM)
+		if self.files[fh] == None:
+			raise FuseOSError(ENOENT)
+		return self.files[fh][offset:offset + size]
 	
 	def readdir(self, path, fh):
 		print 'readdir : ', path, fh
