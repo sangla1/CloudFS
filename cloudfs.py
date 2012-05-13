@@ -68,7 +68,11 @@ class CloudFS(LoggingMixIn, Operations):
 		raise FuseOSError(EPERM)
 	
 	def mkdir(self, path, mode):
-		raise FuseOSError(EPERM)
+		paths = splitPath(path)
+		if paths[1] == '':
+			raise FuseOSError(EPERM)
+		if self.conn.mkdir(paths[0], paths[1]) != True:
+			raise FuseOSError(EPERM)
 	
 	def open(self, path, flags):
 		paths = splitPath(path)
