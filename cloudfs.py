@@ -42,7 +42,7 @@ class CloudFS(LoggingMixIn, Operations):
 
 		fd['path'] = path
 		fd['dirty'] = False
-		fd['data'] = []
+		fd['data'] = ''
 
 		paths = splitPath(path)
 		self.conn.push(paths[0], paths[1], fd['data'])
