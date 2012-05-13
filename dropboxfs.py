@@ -87,11 +87,19 @@ class DropboxFS(cmd.Cmd):
 
     def mkdir(self, path):
         """create a new directory"""
-        self.api_client.file_create_folder(path)
+        try:
+            self.api_client.file_create_folder(path)
+            return True
+        except rest.ErrorResponse:
+            return False
 
     def rm(self, path):
         """delete a file or directory"""
-        self.api_client.file_delete(path)
+        try:
+            self.api_client.file_delete(path)
+            return True
+        except rest.ErrorResponse:
+            return False
 
     def get(self, from_path):
         f, metadata = self.api_client.get_file_and_metadata(from_path)
@@ -125,5 +133,9 @@ if __name__ == '__main__':
     #print "FileInfo Dictionary = "
     #print fileInfo
     #dropbox.get("/test.txt");
-    dropbox.put("Hello World!\n", "/helloworld.txt")
+    #dropbox.put("Hello World!\n", "/helloworld.txt")
+    result = dropbox.mkdir("/test")
+    print "mkdir /test result = " + str(result)
+    #result = dropbox.rm("/test")
+    #print "rmdir /test result = " + str(result)
 
