@@ -98,12 +98,12 @@ class DropboxFS(cmd.Cmd):
         """delete a file or directory"""
         self.api_client.file_delete(path)
 
-    def get(self, from_path, to_path):
-        to_file = open(os.path.expanduser(to_path), "wb")
-
+    def get(self, from_path):
         f, metadata = self.api_client.get_file_and_metadata(from_path)
-        #print 'Metadata:', metadata
-        to_file.write(f.read())
+	byte = metadata['bytes']
+        #to_file.write(f.read())
+	data = f.read(byte)
+	return data
 
     def put(self, from_path, to_path):
         from_file = open(os.path.expanduser(from_path), "rb")
@@ -128,4 +128,4 @@ if __name__ == '__main__':
         print "File Size = " + str(fileInfo['bytes'])
     print "FileInfo Dictionary = "
     print fileInfo
-    dropbox.get("test.txt", "local.txt");
+    dropbox.get("/test.txt");

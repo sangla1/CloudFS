@@ -61,7 +61,7 @@ class Connector:
 			print 1
 			return None
 		print path
-		content = conn['app'].get(path, '/tmp/tmp')
+		content = conn['app'].get(path)
 		print 2, content
 		return content
 	
