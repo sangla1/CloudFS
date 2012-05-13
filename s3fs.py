@@ -16,7 +16,7 @@ class AmazonS3FS(cmd.Cmd):
         fileNameList = []
         pathCount = path.count('/')
         allKeys = self.bucket.get_all_keys()
-        print "Debug = ", allKeys
+        print "LS Debug = ", allKeys
         for k in allKeys:
             paddedKey = '/' + k.key
             keyPathCount = k.key.count('/')
@@ -32,6 +32,11 @@ class AmazonS3FS(cmd.Cmd):
         return fileNameList
 
     def getFileInfo(self, path):
+        pathCount = path.count('/')
+        allKeys = self.bucket.get_all_keys()
+        print "LS Debug = ", allKeys
+        for k in allKeys:
+            paddedKey = '/' + k.key
         return None
 
     def mkdir(self, path):

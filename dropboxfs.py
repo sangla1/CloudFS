@@ -7,6 +7,8 @@ import shlex
 import sys, os, json
 
 from dropbox import client, rest, session
+from stat import S_IFDIR, S_IFLNK, S_IFREG
+from time import time
 
 APP_KEY = 'vhgangrvc4w2poo'
 APP_SECRET = '2xsktxsbhn465mr'
@@ -64,6 +66,7 @@ class DropboxFS(cmd.Cmd):
 
     def ls(self, path):
         """list files in current remote directory"""
+        "LS => input path = " + path
         fileNameList = []
         try:
             resp = self.api_client.metadata(path)
@@ -79,11 +82,17 @@ class DropboxFS(cmd.Cmd):
         return fileNameList
 
     def getFileInfo(self, path):
+        print "getFileInfo Called ====> ", path
         try:
             resp = self.api_client.metadata(path)
         except rest.ErrorResponse:
             return None
-        return resp
+        now = time()
+        if resp['is_dir']:
+            attr = dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
+        else:
+            attr = dict(st_mode=(S_IFREG | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2, st_size=resp['bytes'])
+        return attr
 
     def mkdir(self, path):
         """create a new directory"""
@@ -112,7 +121,7 @@ class DropboxFS(cmd.Cmd):
         f = open('/tmp/workfile', 'w')
         f.write(data)
         #for d in data:
-        #    dataStr.append(d)	
+        #    dataStr.append(d)
         #f.write(dataStr)
         f.close()
         from_file = open(os.path.expanduser('/tmp/workfile'), "rb")

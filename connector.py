@@ -41,16 +41,8 @@ class Connector:
 		if conn == None:
 			return None
 		connAttr = conn['app'].getFileInfo(path)
-		if connAttr == None:
-			return None
 
-		now = time()
-		if connAttr['is_dir']:
-			attr = dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
-		else:
-			attr = dict(st_mode=(S_IFREG | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2, st_size=connAttr['bytes'])
-		
-		return attr
+		return connAttr
 	
 	def push(self, name, path, content):
 		conn = self.findConn(name)
