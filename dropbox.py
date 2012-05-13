@@ -106,20 +106,20 @@ class Dropbox(cmd.Cmd):
 
         self.api_client.put_file(to_path, from_file)
 
-if __name__ == '__main__':
-    dropbox = Dropbox(APP_KEY, APP_SECRET)
-    #dropbox.mkdir("test_mkdir");
-    #dropbox.rmdir("test_mkdir");
-    #dropbox.put("dropbox.pyc", "put_dropbox.pyc");
-    #dropbox.get("put_dropbox.pyc", "get_from_dropbox.pyc");
-    #dropbox.rm("put_dropbox.pyc");
-    fileNameList = dropbox.ls("");
-    print "ls result = "
-    print fileNameList
-    #dropbox.put("test.txt", "test.txt");
-    fileInfo = dropbox.getFileInfo("test.txt2");
-    if fileInfo != None:
-        print "Created Data = " + fileInfo['modified']
-        print "File Size = " + str(fileInfo['bytes'])
-    print "FileInfo Dictionary = "
-    print fileInfo
+#if __name__ == '__main__':
+#    dropbox = Dropbox(APP_KEY, APP_SECRET)
+#    #dropbox.mkdir("test_mkdir");
+#    #dropbox.rmdir("test_mkdir");
+#    #dropbox.put("dropbox.pyc", "put_dropbox.pyc");
+#    #dropbox.get("put_dropbox.pyc", "get_from_dropbox.pyc");
+#    #dropbox.rm("put_dropbox.pyc");
+#    fileNameList = dropbox.ls("");
+#    print "ls result = "
+#    print fileNameList
+#    #dropbox.put("test.txt", "test.txt");
+#    fileInfo = dropbox.getFileInfo("test.txt2");
+#    if fileInfo != None:
+#        print "Created Data = " + fileInfo['modified']
+#        print "File Size = " + str(fileInfo['bytes'])
+#    print "FileInfo Dictionary = "
+#    print fileInfo

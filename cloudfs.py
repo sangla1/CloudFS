@@ -28,8 +28,10 @@ class CloudFS(LoggingMixIn, Operations):
 	
 	def getattr(self, path, fh=None):
 		now = time()
-		paths = splitPath(path)
-		if paths[0] == '':
+		if path[-3:] == 'txt':
+			return dict(st_mode=(0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
+		return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
+		if path == '/':			
 			return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
 
 		attr = self.conn.getAttr(paths[0], paths[1])

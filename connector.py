@@ -73,6 +73,8 @@ class Dropbox(cmd.Cmd):
         if 'contents' in resp:
             for f in resp['contents']:
                 name = os.path.basename(f['path'])
+                encoding = locale.getdefaultlocale()[1]
+                name = (('%s' % name).encode(encoding))
                 fileNameList.append(name)
                 #encoding = locale.getdefaultlocale()[1]
                 #self.stdout.write(('%s\n' % name).encode(encoding))
