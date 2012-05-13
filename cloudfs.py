@@ -42,7 +42,7 @@ class CloudFS(LoggingMixIn, Operations):
 
 		fd['path'] = path
 		fd['dirty'] = False
-		fd['data'] = []
+		fd['data'] = ''
 
 		paths = splitPath(path)
 		self.conn.push(paths[0], paths[1], fd['data'])
@@ -68,7 +68,11 @@ class CloudFS(LoggingMixIn, Operations):
 		raise FuseOSError(EPERM)
 	
 	def mkdir(self, path, mode):
-		raise FuseOSError(EPERM)
+		paths = splitPath(path)
+		if paths[1] == '':
+			raise FuseOSError(EPERM)
+		if self.conn.mkdir(paths[0], paths[1]) != True:
+			raise FuseOSError(EPERM)
 	
 	def open(self, path, flags):
 		paths = splitPath(path)
@@ -123,7 +127,11 @@ class CloudFS(LoggingMixIn, Operations):
 		raise FuseOSError(EPERM)
 	
 	def rmdir(self, path):
-		raise FuseOSError(EPERM)
+		paths = splitPath(path)
+		if paths[1] == '':
+			raise FuseOSError(EPERM)
+		if self.conn.rm(paths[0], paths[1]) != True:
+			raise FuseOSError(ENOENT)
 	
 	def setxattr(self, path, name, value, options, position=0):
 		raise FuseOSError(EPERM)
@@ -134,11 +142,17 @@ class CloudFS(LoggingMixIn, Operations):
 	def symlink(self, target, source):
 		raise FuseOSError(EPERM)
 	
-	def truncate(self, path, length, fh=None):
-		raise FuseOSError(EPERM)
+	def truncate(self, path, length, fh=0):
+		fd = self.files[self.open(path, 0)]
+		fd['dirty'] = True
+		fd['data'] = fd['data'][:length]
 	
 	def unlink(self, path):
-		raise FuseOSError(EPERM)
+		paths = splitPath(path)
+		if paths[1] == '':
+			raise FuseOSError(EPERM)
+		if self.conn.rm(paths[0], paths[1]) != True:
+			raise FuseOSError(ENOENT)
 	
 	def utimens(self, path, times=None):
 		raise FuseOSError(EPERM)

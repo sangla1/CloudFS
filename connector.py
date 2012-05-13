@@ -75,5 +75,16 @@ class Connector:
 		print 2, content
 		return content
 	
-	def remove(self):
-		nop
+	def rm(self, name, path):
+		conn = self.findConn(name)
+		if conn == None:
+			return False
+
+		return conn['app'].rm(path)
+	
+	def mkdir(self, name, path):
+		conn = self.findConn(name)
+		if conn == None:
+			return False
+
+		return conn['app'].mkdir(path)
