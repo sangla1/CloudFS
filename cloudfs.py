@@ -134,8 +134,10 @@ class CloudFS(LoggingMixIn, Operations):
 	def symlink(self, target, source):
 		raise FuseOSError(EPERM)
 	
-	def truncate(self, path, length, fh=None):
-		raise FuseOSError(EPERM)
+	def truncate(self, path, length, fh=0):
+		fd = self.files[self.open(path, 0)]
+		fd['dirty'] = True
+		fd['data'] = fd['data'][:length]
 	
 	def unlink(self, path):
 		raise FuseOSError(EPERM)
