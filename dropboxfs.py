@@ -76,14 +76,9 @@ class DropboxFS(cmd.Cmd):
                 encoding = locale.getdefaultlocale()[1]
                 name = ('%s' % name).encode(encoding)
                 fileNameList.append(name)
-                #self.stdout.write(('%s\n' % name).encode(encoding))
-
         return fileNameList
 
     def getFileInfo(self, path):
-	print "=========== getFileInfo"
-	print path
-	print "==========================="
         try:
             resp = self.api_client.metadata(path)
         except rest.ErrorResponse:
@@ -101,7 +96,6 @@ class DropboxFS(cmd.Cmd):
     def get(self, from_path):
         f, metadata = self.api_client.get_file_and_metadata(from_path)
 	byte = metadata['bytes']
-        #to_file.write(f.read())
 	data = f.read(byte)
 	return data
 
