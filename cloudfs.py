@@ -28,14 +28,18 @@ class CloudFS(LoggingMixIn, Operations):
 	
 	def getattr(self, path, fh=None):
 		now = time()
-		return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
-		if path == '/':			
+		paths = splitPath(path)
+		if paths[0] == '':
 			return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
+
+		attr = self.conn.getAttr(paths[0], paths[1])
+		if attr != None:
+			return attr
 		else:
 			raise FuseOSError(ENOENT)
 	
 	def getxattr(self, path, name, position=0):
-		raise FuseOSError(EPERM)
+		return {}
 
 	def listxattr(self, path):
 		raise FuseOSError(EPERM)
@@ -44,7 +48,14 @@ class CloudFS(LoggingMixIn, Operations):
 		raise FuseOSError(EPERM)
 	
 	def open(self, path, flags):
-		raise FuseOSError(EPERM)
+		paths = splitPath(path)
+		print path, paths
+		if paths[0] == '':
+			raise FuseOSError(EPERM)
+		content = self.conn.pull(paths[0], paths[1])
+		if paths[0] == None:
+			raise FuseOSError(ENOENT)
+		print content
 	
 	def read(self, path, size, offset, fh):
 		raise FuseOSError(EPERM)
@@ -55,8 +66,6 @@ class CloudFS(LoggingMixIn, Operations):
 		print paths
 		if paths[0] == '':
 			dents = self.conn.getConns()
-		elif paths[1] == '':
-			dents = self.conn.getDents(paths[0], '/')
 		else:
 			dents = self.conn.getDents(paths[0], paths[1])
 
@@ -98,7 +107,7 @@ class CloudFS(LoggingMixIn, Operations):
 
 def splitPath(path):
 	s = path.split('/')
-	return [s[1], '/'.join(s[2:])]
+	return [s[1], '/' + '/'.join(s[2:])]
 		
 
 if __name__ == "__main__":
