@@ -62,7 +62,7 @@ class CloudFS(LoggingMixIn, Operations):
 			raise FuseOSError(ENOENT)
 	
 	def getxattr(self, path, name, position=0):
-		return {}
+		return ''
 
 	def listxattr(self, path):
 		raise FuseOSError(EPERM)
