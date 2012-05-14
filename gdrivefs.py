@@ -49,6 +49,47 @@ class GDriveFS():
 		self.cl.client_login(email, password, source=source, service='writely') 
 		mimetypes.init()
 
+	def refresh(self):
+		self.nodeDict = {}
+		RESOURCE_FEED_URI = '/feeds/default/private/full/'
+		uri = RESOURCE_FEED_URI
+		uri = atom.http_core.Uri.parse_uri(uri) 
+		uri.query['showfolders'] = 'true'
+	
+		ch = self.cl.get_feed(uri, desired_class=gdata.docs.data.ResourceFeed)
+
+		root = Node('', '/', True)
+
+		for ent in ch.entry:
+
+			
+			id = ent.id.text[ent.id.text.find('id/')+3: ]
+
+			trueorfalse = False
+			if self.isFolder(ent):
+				trueorfalse = True
+			else:
+				trueorfalse = False
+
+			if self.nodeDict.has_key(id) == False:
+				nd = Node(id, ent.title.text, trueorfalse)
+				nd.setSize(int(ent.quota_bytes_used.text))
+				self.nodeDict[id] = nd
+			else:
+				nd = self.nodeDict[id]
+
+			nd.setResource(ent)
+
+			if self.hasParent(ent):
+				prnd = self.getParent(ent)
+				if self.nodeDict.has_key(prnd.id) == False:
+					self.nodeDict[prnd.id] = prnd
+					nd.setParent(prnd)
+				else:
+					nd.setParent(self.nodeDict[prnd.id])
+
+
+
 	def isFolder(self, entry):
 		for cat in entry.category:
 			if cat.label == 'folder':
@@ -143,6 +184,7 @@ class GDriveFS():
 				
 
 	def rm(self, path):
+		self.refresh()
 		if path.startswith('.'):
 			path = path[1: ]
 
@@ -152,6 +194,7 @@ class GDriveFS():
 				self.cl.delete(self.nodeDict[node].resource)
 
 	def mkdir(self, path):
+		self.refresh()
 		pa = path[: -path[::-1].find('/')-1]
 		name = path[len(pa)+1: ]
 		col = gdata.docs.data.Resource(type='folder', title=name)
@@ -165,12 +208,14 @@ class GDriveFS():
 		
 
 	def get(self, path):
+		self.refresh()
 		for node in self.nodeDict:
 			if self.nodeDict[node].isFolder == False and self.nodeDict[node].getPath() == path:
 				return self.client.download_resource_to_memory(self.nodeDict[node].resource)
 
 
 	def put(self, data, path):
+		self.refresh()
 		pa = path[: -path[::-1].find('/')-1]
 		name = path[len(pa)+1: ]
 		res = gdata.docs.data.Resource(type='file', title=name)
