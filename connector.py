@@ -57,9 +57,9 @@ class Connector:
 		if conn == None:
 			return False
 
-		print 'PUSH'
-		print path
-		print content
+#		print 'PUSH'
+#		print path
+#		print content
 
 		conn['app'].put(content, path)
 

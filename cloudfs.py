@@ -13,22 +13,27 @@ from connector import Connector
 class CloudFS(LoggingMixIn, Operations):
 	
 	def __init__(self):
+		# initialize file table
 		self.maxFiles = 1024
 		self.files = [dict(path=None, dirty=False, data=None)] * self.maxFiles
 		self.conn = Connector()
 		
 	def chmod(self, path, mode):
+		# chmod is not allowed
 		raise FuseOSError(EPERM)
 
 	def chown(self, path, uid, gid):
+		# chown is not allowed
 		raise FuseOSError(EPERM)
 	
 	def create(self, path, mode):
+		# create file
 		paths = splitPath(path)
 		print path, paths
 		if paths[0] == '':
 			raise FuseOSError(EPERM)
 
+		# search available fd
 		fd = None
 		fdNum = 0		
 		for i in range(0, self.maxFiles):
@@ -52,6 +57,7 @@ class CloudFS(LoggingMixIn, Operations):
 	def getattr(self, path, fh=None):
 		now = time()
 		paths = splitPath(path)
+		# if root?
 		if paths[0] == '':
 			return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
 
@@ -69,6 +75,7 @@ class CloudFS(LoggingMixIn, Operations):
 	
 	def mkdir(self, path, mode):
 		paths = splitPath(path)
+		# mkdir is not allowed under root dir
 		if paths[1] == '':
 			raise FuseOSError(EPERM)
 		if self.conn.mkdir(paths[0], paths[1]) != True:
@@ -76,14 +83,17 @@ class CloudFS(LoggingMixIn, Operations):
 	
 	def open(self, path, flags):
 		paths = splitPath(path)
+		# cannot open files under root dir
 		print path, paths
 		if paths[0] == '':
 			raise FuseOSError(EPERM)
 
+		# cache file content from storage
 		content = self.conn.pull(paths[0], paths[1])
 		if paths[0] == None:
 			raise FuseOSError(ENOENT)
 
+		# search available file
 		fd = None
 		fdNum = 0		
 		for i in range(0, self.maxFiles):
@@ -104,12 +114,12 @@ class CloudFS(LoggingMixIn, Operations):
 	def read(self, path, size, offset, fh):
 		if self.files[fh]['path'] == None:
 			raise FuseOSError(ENOENT)
+
 		return self.files[fh]['data'][offset:offset + size]
 	
 	def readdir(self, path, fh):
-		print 'readdir : ', path, fh
 		paths = splitPath(path)
-		print paths
+
 		if paths[0] == '':
 			dents = self.conn.getConns()
 		else:
@@ -118,16 +128,20 @@ class CloudFS(LoggingMixIn, Operations):
 		return ['.', '..'] + dents
 	
 	def readlink(self, path):
+		# readlink is not allowed
 		raise FuseOSError(EPERM)
 	
 	def removexattr(self, path, name):
 		raise FuseOSError(EPERM)
 	
 	def rename(self, old, new):
+		# rename is not allowed
 		raise FuseOSError(EPERM)
 	
 	def rmdir(self, path):
 		paths = splitPath(path)
+
+		# cannot remove mounted dir
 		if paths[1] == '':
 			raise FuseOSError(EPERM)
 		if self.conn.rm(paths[0], paths[1]) != True:
@@ -149,6 +163,8 @@ class CloudFS(LoggingMixIn, Operations):
 	
 	def unlink(self, path):
 		paths = splitPath(path)
+
+		# cannot remove mounted dir
 		if paths[1] == '':
 			raise FuseOSError(EPERM)
 		if self.conn.rm(paths[0], paths[1]) != True:
@@ -162,6 +178,7 @@ class CloudFS(LoggingMixIn, Operations):
 		if fd['path'] == None:
 			raise FuseOSError(ENOENT)
 
+		# update data and set dirty bit
 		fd['data'] = fd['data'][:offset] + data
 		fd['dirty'] = True
 		
@@ -172,14 +189,17 @@ class CloudFS(LoggingMixIn, Operations):
 		if fd['path'] == None:
 			raise FuseOSError(ENOENT)
 
+		# write back if dirty is set
 		if fd['dirty'] == True:
 			paths = splitPath(path)
 			self.conn.push(paths[0], paths[1], fd['data'])
 
+		# reset fd
 		fd['path'] = None
 		fd['dirty'] = False
 		fd['data'] = None
 
+# split given path to mounted dir and real path
 def splitPath(path):
 	s = path.split('/')
 	return [s[1], '/' + '/'.join(s[2:])]
