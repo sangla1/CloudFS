@@ -225,7 +225,12 @@ class GDriveFS():
 		self.refresh()
 		for node in self.nodeDict:
 			if self.nodeDict[node].isFolder == False and self.nodeDict[node].getPath() == path:
-				return self.client.download_resource_to_memory(self.nodeDict[node].resource)
+				self.client.download_revision(self.nodeDict[node].resource, '/tmp/workfile')
+				f = open('/tmp/workfile', 'r')
+				data = f.read()
+				f.close()
+				return data
+#		return self.client.download_resource_to_memory(self.nodeDict[node].resource)
 
 
 	def put(self, data, path):
@@ -265,7 +270,11 @@ def main():
 	f.close()
 #	gdrive.put(data, '/test.txt')
 #	gdrive.mkdir('/what/haha/new')
-	print gdrive.get('/test.txt')
+	data = gdrive.get('/crane.txt')
+	
+	f = open('./testtt.txt', 'w')
+	f.write(data)
+	f.close()
 #	gdrive.rm('./crane.txt')
 #	print gdrive.ls('./what/haha')
 
