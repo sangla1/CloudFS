@@ -11,10 +11,10 @@ from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
 
 class AmazonS3FS(cmd.Cmd):
-    def __init__(self, key, secret):
+    def __init__(self, bucket_name, key, secret):
         cmd.Cmd.__init__(self)
         self.conn = S3Connection(key, secret)
-        self.bucket = self.conn.create_bucket('cloud_fs')
+        self.bucket = self.conn.create_bucket(bucket_name)
 
     def ls(self, path):
         print "DEBUG Amazon S3 Ls => ", path
