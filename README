@@ -36,8 +36,8 @@ one disk in Linux system.
         - gdrive-sdk : Google Drive SDK folder
 
     * Implemented Files
-        - cloudfs.py :
-        - connector.py : 
+        - cloudfs.py : Main interface for cloud FS
+        - connector.py : Keep adaptor connection for each storage, and call appropriate methods
         - dropboxfs.py : Dropbox Adaptor for FUSE
         - s3fs.py : Amazon S3 Adaptor for FUSE
         - gdrivefs.py : Google Drive Adaptor for FUSE
