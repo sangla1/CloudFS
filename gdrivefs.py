@@ -136,6 +136,7 @@ class GDriveFS():
 	
 	def getFileInfo(self, path):
 		print 'getFileInfo ', path
+		self.refresh()
 		now = time()
 		if path == '/':
 			return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
@@ -180,7 +181,6 @@ class GDriveFS():
 						st = te.find('<span>')	
 						ed = te.find('</span></p>')
 						nd.setSize(ed - st)
-						print ed-st
 
 				else:
 					nd.setSize(int(ent.quota_bytes_used.text))
