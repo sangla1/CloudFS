@@ -117,6 +117,8 @@ class DropboxFS(cmd.Cmd):
         return data
 
     def put(self, data, to_path):
+        if self.getFileInfo(to_path) != None:
+            self.rm(to_path)
         dataStr = ''
         f = open('/tmp/workfile', 'w')
         f.write(data)
