@@ -1,0 +1,4 @@
+account = [
+('dropbox', NAME, KEY, SECRET)
+('s3', NAME, BUCKET, KEY, SECRET)
+]
