@@ -1,0 +1,44 @@
+###############################################################################
+#
+# COMS E6998 Cloud Computing 
+#  
+# Final Project : Cloud FS
+#
+# Team 8 : Young Hoon Jeon (yj2231)
+#          Jin Hyung Park (jp2105)
+#          Daniel Wonjun Song (dws2127)
+#
+###############################################################################
+
+0. Project Purpose
+
+The goal of our project, 'Cloud FS', is that we want to give users the unified
+cloud file system. This is because there are lots of dropbox like services, but
+we cannot use all of them as one disk. So, by using our 'Cloud FS', users can
+connect all of their dropbox-like services, and all of them are mounted into 
+one disk in Linux system.
+
+
+1. System Requirements
+
+    * Ubuntu Linux 10.4 or newer
+    * Python version 2.6 or newer
+    * Dropbox SDK for Python
+    * Amazon S3 SDK for Python
+    * Google Drive SDK for Python
+
+2. Files Description
+
+    * Used SDKs
+        - fusepy : FUSE Python SDK
+        - dropbox-sdk : Dropbox SDK folder
+        - dropbox : Dropbox Client Class
+        - gdrive-sdk : Google Drive SDK folder
+
+    * Implemented Files
+        - cloudfs.py :
+        - connector.py : 
+        - dropboxfs.py : Dropbox Adaptor for FUSE
+        - s3fs.py : Amazon S3 Adaptor for FUSE
+        - gdrivefs.py : Google Drive Adaptor for FUSE
+        - account.py.example : To store each account informaion
