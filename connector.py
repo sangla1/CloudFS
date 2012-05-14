@@ -4,6 +4,7 @@ from account import *
 
 from s3fs import AmazonS3FS
 from dropboxfs import DropboxFS
+from gdrivefs import GDriveFS
 
 class Connector:
 
@@ -14,6 +15,8 @@ class Connector:
 				self.conns.append(dict(name=item[1], app=DropboxFS(item[2], item[3])))
 			elif item[0] == 's3':
 				self.conns.append(dict(name=item[1], app=AmazonS3FS(item[2], item[3], item[4])))
+			elif item[0] == 'gdrive':
+				self.conns.append(dict(name=item[1], app=GDriveFS(item[2], item[3])))
 
 	def getConns(self):
 		conns = []
