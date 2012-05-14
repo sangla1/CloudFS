@@ -3,7 +3,7 @@
 import cmd
 import locale
 import sys, os
-import amazonkey
+#import amazonkey
 
 from boto.s3.key import Key
 from boto.s3.connection import S3Connection
