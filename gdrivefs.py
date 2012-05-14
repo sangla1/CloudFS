@@ -5,6 +5,8 @@ import atom.http_core
 import gdata.docs.data
 from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
+import re
+import mimetypes
 
 class Node():
 	
@@ -45,6 +47,7 @@ class GDriveFS():
 		self.cl.auth_service = 'writely'
 		self.cl.ssl = True
 		self.cl.client_login(email, password, source=source, service='writely') 
+		mimetypes.init()
 
 	def isFolder(self, entry):
 		for cat in entry.category:
@@ -152,12 +155,43 @@ class GDriveFS():
 		pa = path[: -path[::-1].find('/')-1]
 		name = path[len(pa)+1: ]
 		col = gdata.docs.data.Resource(type='folder', title=name)
-		for node in self.nodeDict:
 
-			if self.nodeDict[node].isFolder and self.nodeDict[node].getPath() == pa:
-				self.client.CreateResource(col, collection=self.nodeDict[node].resource)
+		if '/' + name == path:
+			self.client.create_resource(col)
+		else:
+			for node in self.nodeDict:
+				if self.nodeDict[node].isFolder and self.nodeDict[node].getPath() == pa:
+					self.client.CreateResource(col, collection=self.nodeDict[node].resource)
 		
 
+	def get(self, path):
+		for node in self.nodeDict:
+			if self.nodeDict[node].isFolder == False and self.nodeDict[node].getPath() == path:
+				return self.client.download_resource_to_memory(self.nodeDict[node].resource)
+
+
+	def put(self, data, path):
+		pa = path[: -path[::-1].find('/')-1]
+		name = path[len(pa)+1: ]
+		res = gdata.docs.data.Resource(type='file', title=name)
+		f = open('/tmp/workfile', 'w')
+		f.write(data)
+		f.close()
+
+		match = re.search('.*\.([a-zA-Z]{3,}$)', name)
+		ext = '.' + match.group(1).lower()
+
+		type = mimetypes.types_map[ext]
+
+		ms = gdata.MediaSource(file_path='/tmp/workfile', content_type=type) 
+
+		if '/' + name == path:
+			self.client.create_resource(res, media=ms)
+		else:
+			for node in self.nodeDict:
+				if self.nodeDict[node].isFolder and self.nodeDict[node].getPath() == pa:
+					self.client.create_resource(res, media=ms, collection=self.nodeDict[node].resource)
+		
 
 def main():
 	email = 'temptemp678'
@@ -165,9 +199,12 @@ def main():
 	gdrive = GDriveFS(email, password)
 	#gdrive.test()
 	gdrive.ls('./')
-	print gdrive.getFileInfo('/Untitled 2.pdf')
+	f = open('./dws2127.pdf', 'r')
+	data = f.read()
+	f.close()
+	gdrive.put(data, '/dws2127.pdf')
 #	gdrive.mkdir('/what/haha/new')
-#	gdrive.get('./Untitled 2.pdf')
+#	gdrive.get('/Untitled 2.pdf')
 #	gdrive.rm('./crane.txt')
 #	print gdrive.ls('./what/haha')
 
