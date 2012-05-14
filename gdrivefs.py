@@ -204,6 +204,7 @@ class GDriveFS():
 			col = self.nodeDict[node].getPath()
 			if col == path:
 				self.cl.delete(self.nodeDict[node].resource)
+				self.refresh()
 				return True
 		return False
 
@@ -216,11 +217,13 @@ class GDriveFS():
 
 		if '/' + name == path:
 			self.client.create_resource(col)
+			self.refresh()
 			return True
 		else:
 			for node in self.nodeDict:
 				if self.nodeDict[node].isFolder and self.nodeDict[node].getPath() == pa:
 					self.client.CreateResource(col, collection=self.nodeDict[node].resource)
+					self.refresh()
 					return True
 
 		return False
@@ -242,6 +245,9 @@ class GDriveFS():
 	def put(self, data, path):
 		print 'put ', path
 		print 'data', data
+		print len(data)
+		if len(data) == 0:
+			return
 		self.refresh()
 		pa = path[: -path[::-1].find('/')-1]
 		name = path[len(pa)+1: ]
@@ -250,8 +256,7 @@ class GDriveFS():
 		f.write(data)
 		f.close()
 
-		match = re.search('.*\.([a-zA-Z]{3,}$)', name)
-		ext = '.' + match.group(1).lower()
+		ext = name[name.find('.'): ].lower()
 
 		type = mimetypes.types_map[ext]
 
@@ -278,7 +283,7 @@ def main():
 #	gdrive.mkdir('/what/haha/new')
 #	gdrive.rm('./crane.txt')
 #	print gdrive.ls('./what/haha')
-	gdrive.mkdir('/aa')
+	print gdrive.mkdir('/bbb')
 
 
 if __name__ == '__main__':
