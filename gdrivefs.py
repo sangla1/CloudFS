@@ -74,8 +74,8 @@ class GDriveFS():
 			if self.nodeDict.has_key(id) == False:
 				nd = Node(id, ent.title.text, trueorfalse)
 				if int(ent.quota_bytes_used.text) == 0 and trueorfalse == False:
-					self.client.download_revision(ent, '/tmp/workfile')
-					f = open('/tmp/workfile', 'r')
+					self.client.download_revision(ent, '/tmp/cworkfile')
+					f = open('/tmp/cworkfile', 'r')
 					data = f.read()
 					f.close()
 					te = data
@@ -136,7 +136,7 @@ class GDriveFS():
 	
 	def getFileInfo(self, path):
 		print 'getFileInfo ', path
-		self.refresh()
+#		self.refresh()
 		now = time()
 		if path == '/':
 			return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
@@ -172,8 +172,8 @@ class GDriveFS():
 			if self.nodeDict.has_key(id) == False:
 				nd = Node(id, ent.title.text, trueorfalse)
 				if int(ent.quota_bytes_used.text) == 0 and trueorfalse == False:
-					self.client.download_revision(ent, '/tmp/workfile')
-					f = open('/tmp/workfile', 'r')
+					self.client.download_revision(ent, '/tmp/rworkfile')
+					f = open('/tmp/rworkfile', 'r')
 					data = f.read()
 					f.close()
 					te = data
@@ -258,8 +258,8 @@ class GDriveFS():
 		self.refresh()
 		for node in self.nodeDict:
 			if self.nodeDict[node].isFolder == False and self.nodeDict[node].getPath() == path:
-				self.client.download_revision(self.nodeDict[node].resource, '/tmp/workfile')
-				f = open('/tmp/workfile', 'r')
+				self.client.download_resource(self.nodeDict[node].resource, '/tmp/getworkfile')
+				f = open('/tmp/getworkfile', 'r')
 				data = f.read()
 				f.close()
 				if path.endswith('.txt'):
@@ -267,7 +267,9 @@ class GDriveFS():
 					ed = data.find('</span></p>')
 					#print st, ed
 					return data[st+6: ed: ]
-				return data
+				else:
+					print 'returning data'
+					return data
 #		return self.client.download_resource_to_memory(self.nodeDict[node].resource)
 
 
@@ -278,21 +280,20 @@ class GDriveFS():
 		if len(data) == 0:
 			data = ' '
 		else:
+			print 'ERASE!!!!!!!!!!'
 			self.rm(path)	
 		self.refresh()
 		pa = path[: -path[::-1].find('/')-1]
 		name = path[len(pa)+1: ]
 		res = gdata.docs.data.Resource(type='file', title=name)
-		f = open('/tmp/workfile', 'w')
+		f = open('/tmp/putworkfile', 'w')
 		f.write(data)
 		f.close()
 
 		ext = name[name.find('.'): ].lower()
 
 		type = mimetypes.types_map[ext]
-		print type
-
-		ms = gdata.MediaSource(file_path='/tmp/workfile', content_type=type) 
+		ms = gdata.MediaSource(file_path='/tmp/putworkfile', content_type=type) 
 
 		if '/' + name == path:
 			self.client.create_resource(res, media=ms)
