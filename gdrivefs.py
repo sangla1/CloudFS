@@ -2,6 +2,9 @@ import gdata.docs.service
 import gdata.docs.client
 import gdata.sample_util
 import atom.http_core
+import gdata.docs.data
+from stat import S_IFDIR, S_IFLNK, S_IFREG
+from time import time
 
 class Node():
 	
@@ -16,11 +19,17 @@ class Node():
 	def setParent(self, parent):
 		self.parent = parent
 
+	def setResource(self, resource):
+		self.resource = resource
+
 	def getPath(self):
 		if hasattr(self, 'parent') == False:
 			return '/' + self.name
 		return self.parent.getPath() + '/' + self.name
 		#return name
+
+	def setSize(self, size):
+		self.size = size	
 
 
 class GDriveFS():
@@ -36,7 +45,6 @@ class GDriveFS():
 		self.cl.auth_service = 'writely'
 		self.cl.ssl = True
 		self.cl.client_login(email, password, source=source, service='writely') 
-
 
 	def isFolder(self, entry):
 		for cat in entry.category:
@@ -69,7 +77,15 @@ class GDriveFS():
 				return Node(link.href[link.href.find('/folder') + 1: ], link.title, True)
 
 		return '' 
-
+	
+	def getFileInfo(self, path):
+		now = time()
+		for node in self.nodeDict:
+			if self.nodeDict[node].getPath() == path:
+				if self.nodeDict[node].isFolder:
+					return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
+				return dict(st_mode=(S_IFREG | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2, st_size=self.nodeDict[node].size)
+		return None
 
 	def ls(self, path):
 		self.nodeDict = {}
@@ -83,6 +99,8 @@ class GDriveFS():
 		root = Node('', '/', True)
 
 		for ent in ch.entry:
+
+			
 			id = ent.id.text[ent.id.text.find('id/')+3: ]
 
 			trueorfalse = False
@@ -93,9 +111,12 @@ class GDriveFS():
 
 			if self.nodeDict.has_key(id) == False:
 				nd = Node(id, ent.title.text, trueorfalse)
+				nd.setSize(int(ent.quota_bytes_used.text))
 				self.nodeDict[id] = nd
 			else:
 				nd = self.nodeDict[id]
+
+			nd.setResource(ent)
 
 			if self.hasParent(ent):
 				prnd = self.getParent(ent)
@@ -115,10 +136,27 @@ class GDriveFS():
 			if col.startswith(path) and len(col[len(path):]) > 0:
 				file_list.append(col[len(path) + 1: ])
 
-
 		return file_list
 				
 
+	def rm(self, path):
+		if path.startswith('.'):
+			path = path[1: ]
+
+		for node in self.nodeDict:
+			col = self.nodeDict[node].getPath()
+			if col == path:
+				self.cl.delete(self.nodeDict[node].resource)
+
+	def mkdir(self, path):
+		pa = path[: -path[::-1].find('/')-1]
+		name = path[len(pa)+1: ]
+		col = gdata.docs.data.Resource(type='folder', title=name)
+		for node in self.nodeDict:
+
+			if self.nodeDict[node].isFolder and self.nodeDict[node].getPath() == pa:
+				self.client.CreateResource(col, collection=self.nodeDict[node].resource)
+		
 
 
 def main():
@@ -126,7 +164,12 @@ def main():
 	password = 'cloudfs99'
 	gdrive = GDriveFS(email, password)
 	#gdrive.test()
-	print gdrive.ls('./what/haha')
+	gdrive.ls('./')
+	print gdrive.getFileInfo('/Untitled 2.pdf')
+#	gdrive.mkdir('/what/haha/new')
+#	gdrive.get('./Untitled 2.pdf')
+#	gdrive.rm('./crane.txt')
+#	print gdrive.ls('./what/haha')
 
 
 if __name__ == '__main__':
