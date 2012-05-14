@@ -63,7 +63,6 @@ class GDriveFS():
 
 		for ent in ch.entry:
 
-			
 			id = ent.id.text[ent.id.text.find('id/')+3: ]
 
 			trueorfalse = False
@@ -74,7 +73,20 @@ class GDriveFS():
 
 			if self.nodeDict.has_key(id) == False:
 				nd = Node(id, ent.title.text, trueorfalse)
-				nd.setSize(int(ent.quota_bytes_used.text))
+				if int(ent.quota_bytes_used.text) == 0 and trueorfalse == False:
+					self.client.download_revision(ent, '/tmp/workfile')
+					f = open('/tmp/workfile', 'r')
+					data = f.read()
+					f.close()
+					te = data
+					if ent.title.text.endswith('.txt'):
+						st = te.find('<span>')	
+						ed = te.find('</span></p>')
+						nd.setSize(ed - st)
+
+				else:
+					nd.setSize(int(ent.quota_bytes_used.text))
+
 				self.nodeDict[id] = nd
 			else:
 				nd = self.nodeDict[id]
@@ -88,7 +100,6 @@ class GDriveFS():
 					nd.setParent(prnd)
 				else:
 					nd.setParent(self.nodeDict[prnd.id])
-
 
 
 	def isFolder(self, entry):
@@ -131,7 +142,7 @@ class GDriveFS():
 		for node in self.nodeDict:
 			if self.nodeDict[node].getPath() == path:
 				if self.nodeDict[node].isFolder:
-					return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
+					return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2, st_size=4096)
 				return dict(st_mode=(S_IFREG | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2, st_size=self.nodeDict[node].size)
 		return None
 
@@ -159,7 +170,20 @@ class GDriveFS():
 
 			if self.nodeDict.has_key(id) == False:
 				nd = Node(id, ent.title.text, trueorfalse)
-				nd.setSize(int(ent.quota_bytes_used.text))
+				if int(ent.quota_bytes_used.text) == 0 and trueorfalse == False:
+					self.client.download_revision(ent, '/tmp/workfile')
+					f = open('/tmp/workfile', 'r')
+					data = f.read()
+					f.close()
+					te = data
+					if ent.title.text.endswith('.txt'):
+						st = te.find('<span>')	
+						ed = te.find('</span></p>')
+						nd.setSize(ed - st)
+						print ed-st
+
+				else:
+					nd.setSize(int(ent.quota_bytes_used.text))
 				self.nodeDict[id] = nd
 			else:
 				nd = self.nodeDict[id]
@@ -238,16 +262,23 @@ class GDriveFS():
 				f = open('/tmp/workfile', 'r')
 				data = f.read()
 				f.close()
+				if path.endswith('.txt'):
+					st = data.find('<span>')	
+					ed = data.find('</span></p>')
+					#print st, ed
+					return data[st+6: ed: ]
 				return data
 #		return self.client.download_resource_to_memory(self.nodeDict[node].resource)
 
 
 	def put(self, data, path):
 		print 'put ', path
-		print 'data', data
+#		print 'data', data
 		print len(data)
 		if len(data) == 0:
-			return
+			data = ' '
+		else:
+			self.rm(path)	
 		self.refresh()
 		pa = path[: -path[::-1].find('/')-1]
 		name = path[len(pa)+1: ]
@@ -259,6 +290,7 @@ class GDriveFS():
 		ext = name[name.find('.'): ].lower()
 
 		type = mimetypes.types_map[ext]
+		print type
 
 		ms = gdata.MediaSource(file_path='/tmp/workfile', content_type=type) 
 
@@ -268,6 +300,7 @@ class GDriveFS():
 			for node in self.nodeDict:
 				if self.nodeDict[node].isFolder and self.nodeDict[node].getPath() == pa:
 					self.client.create_resource(res, media=ms, collection=self.nodeDict[node].resource)
+		self.refresh()
 		
 
 def main():
