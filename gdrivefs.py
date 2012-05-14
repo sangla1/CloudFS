@@ -48,6 +48,7 @@ class GDriveFS():
 		self.cl.ssl = True
 		self.cl.client_login(email, password, source=source, service='writely') 
 		mimetypes.init()
+		self.refresh()
 
 	def refresh(self):
 		self.nodeDict = {}
@@ -123,7 +124,10 @@ class GDriveFS():
 		return '' 
 	
 	def getFileInfo(self, path):
+		print 'getFileInfo ', path
 		now = time()
+		if path == '/':
+			return dict(st_mode=(S_IFDIR | 0755), st_ctime=now, st_mtime=now, st_atime=now, st_nlink=2)
 		for node in self.nodeDict:
 			if self.nodeDict[node].getPath() == path:
 				if self.nodeDict[node].isFolder:
@@ -132,6 +136,7 @@ class GDriveFS():
 		return None
 
 	def ls(self, path):
+		print 'ls ', path
 		self.nodeDict = {}
 		RESOURCE_FEED_URI = '/feeds/default/private/full/'
 		uri = RESOURCE_FEED_URI
@@ -144,7 +149,6 @@ class GDriveFS():
 
 		for ent in ch.entry:
 
-			
 			id = ent.id.text[ent.id.text.find('id/')+3: ]
 
 			trueorfalse = False
@@ -173,17 +177,25 @@ class GDriveFS():
 		if path.startswith('.'):
 			path = path[1: ]
 
+#		if path == '/':
+#			path = path[1: ]
+
 		file_list = []
 
 		for node in self.nodeDict:
 			col = self.nodeDict[node].getPath()
-			if col.startswith(path) and len(col[len(path):]) > 0:
-				file_list.append(col[len(path) + 1: ])
+#			print path, col
+			if col.startswith(path) and len(col[len(path):]) > 0 and col[len(path)+1:].find('/') == -1:
+				if path == '/':
+					file_list.append(col[len(path): ])
+				else:
+					file_list.append(col[len(path) + 1: ])
 
 		return file_list
 				
 
 	def rm(self, path):
+		print 'rm ', path
 		self.refresh()
 		if path.startswith('.'):
 			path = path[1: ]
@@ -194,6 +206,7 @@ class GDriveFS():
 				self.cl.delete(self.nodeDict[node].resource)
 
 	def mkdir(self, path):
+		print 'mkdir ', path
 		self.refresh()
 		pa = path[: -path[::-1].find('/')-1]
 		name = path[len(pa)+1: ]
@@ -208,6 +221,7 @@ class GDriveFS():
 		
 
 	def get(self, path):
+		print 'get ', path
 		self.refresh()
 		for node in self.nodeDict:
 			if self.nodeDict[node].isFolder == False and self.nodeDict[node].getPath() == path:
@@ -215,6 +229,8 @@ class GDriveFS():
 
 
 	def put(self, data, path):
+		print 'put ', path
+		print 'data', data
 		self.refresh()
 		pa = path[: -path[::-1].find('/')-1]
 		name = path[len(pa)+1: ]
@@ -242,14 +258,14 @@ def main():
 	email = 'temptemp678'
 	password = 'cloudfs99'
 	gdrive = GDriveFS(email, password)
-	#gdrive.test()
-	gdrive.ls('./')
-	f = open('./dws2127.pdf', 'r')
+	gdrive.getFileInfo('/')
+	#print gdrive.ls('/')
+	f = open('./test.txt', 'r')
 	data = f.read()
 	f.close()
-	gdrive.put(data, '/dws2127.pdf')
+#	gdrive.put(data, '/test.txt')
 #	gdrive.mkdir('/what/haha/new')
-#	gdrive.get('/Untitled 2.pdf')
+	print gdrive.get('/test.txt')
 #	gdrive.rm('./crane.txt')
 #	print gdrive.ls('./what/haha')
 
