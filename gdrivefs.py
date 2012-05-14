@@ -204,6 +204,8 @@ class GDriveFS():
 			col = self.nodeDict[node].getPath()
 			if col == path:
 				self.cl.delete(self.nodeDict[node].resource)
+				return True
+		return False
 
 	def mkdir(self, path):
 		print 'mkdir ', path
@@ -214,10 +216,14 @@ class GDriveFS():
 
 		if '/' + name == path:
 			self.client.create_resource(col)
+			return True
 		else:
 			for node in self.nodeDict:
 				if self.nodeDict[node].isFolder and self.nodeDict[node].getPath() == pa:
 					self.client.CreateResource(col, collection=self.nodeDict[node].resource)
+					return True
+
+		return False
 		
 
 	def get(self, path):
@@ -270,13 +276,9 @@ def main():
 	f.close()
 #	gdrive.put(data, '/test.txt')
 #	gdrive.mkdir('/what/haha/new')
-	data = gdrive.get('/crane.txt')
-	
-	f = open('./testtt.txt', 'w')
-	f.write(data)
-	f.close()
 #	gdrive.rm('./crane.txt')
 #	print gdrive.ls('./what/haha')
+	gdrive.mkdir('/aa')
 
 
 if __name__ == '__main__':
