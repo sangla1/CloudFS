@@ -15,7 +15,10 @@ class CloudFS(LoggingMixIn, Operations):
 	def __init__(self):
 		# initialize file table
 		self.maxFiles = 1024
-		self.files = [dict(path=None, dirty=False, data=None)] * self.maxFiles
+#		self.files = [dict(path=None, dirty=False, data=None)] * self.maxFiles
+		self.files = [None] * self.maxFiles
+		for i in range(0, self.maxFiles):
+			self.files[i] = dict(path=None, dirty=False, data=None)
 		self.conn = Connector()
 		
 	def chmod(self, path, mode):
@@ -35,10 +38,13 @@ class CloudFS(LoggingMixIn, Operations):
 
 		# search available fd
 		fd = None
-		fdNum = 0		
+		fdNum = -1
 		for i in range(0, self.maxFiles):
 			fd = self.files[i]
+			print i
 			if fd['path'] == None:
+#				print "MATCH!!!"
+#				print fdNum
 				fdNum = i
 				break
 
@@ -46,7 +52,7 @@ class CloudFS(LoggingMixIn, Operations):
 			raise FuseOSError(ENOENT)
 
 		fd['path'] = path
-		fd['dirty'] = False
+		fd['dirty'] = True
 		fd['data'] = ''
 
 		paths = splitPath(path)
@@ -95,7 +101,7 @@ class CloudFS(LoggingMixIn, Operations):
 
 		# search available file
 		fd = None
-		fdNum = 0		
+		fdNum = -1		
 		for i in range(0, self.maxFiles):
 			fd = self.files[i]
 			if fd['path'] == None:
@@ -191,6 +197,7 @@ class CloudFS(LoggingMixIn, Operations):
 
 		# write back if dirty is set
 		if fd['dirty'] == True:
+			print '### UPDATE ', path
 			paths = splitPath(path)
 			self.conn.push(paths[0], paths[1], fd['data'])
 
